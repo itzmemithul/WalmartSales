@@ -73,7 +73,7 @@ jobs:
 
   push-image:
     needs: [train, test, build]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - name: Repo Checkout
       uses: actions/checkout@v2
