@@ -1,0 +1,53 @@
+# Package Overview
+package_name: WalmartSales_model
+
+# Data Files
+training_data_file: Walmart_sales.csv
+
+# Variables
+# The variable we are attempting to predict (cnt)
+target: Weekly_Sales
+
+pipeline_name: WalmartSales_model
+pipeline_save_file: WalmartSales__model_output_v
+
+# Features that will go inside processing pipeline
+features:
+  - Store
+  - Holiday_Flag
+  - Temperature
+  - Fuel_Price
+  - CPI
+  - Unemployment
+  - Quarter
+
+
+unused_fields:  # Features to drop before pipeline
+  - Date
+
+columns_to_scale: 
+  - Temperature
+  - Fuel_Price
+  - CPI
+  - Unemployment
+
+# Features names
+
+store_var: Store
+holiday_flag_var: Holiday_Flag
+temperature_var: Temperature
+fuel_price_var: Fuel_Price
+cpi_var: CPI
+unemployment_var: Unemployment
+quarter_var: Quarter
+date_var: Date
+  
+# Set train/test split
+test_size: 0.20
+
+# Set the random seed
+random_state: 42
+
+# Alogrithm parameters
+n_estimators: 100
+max_depth: 10
