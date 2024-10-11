@@ -14,7 +14,7 @@ jobs:
       - name: Set up SSH for local system
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.SSH_ORALCE_LAPTOP }}
 
       - name: Pull Container Image with nerdctl on Rancher Desktop
         run: |
