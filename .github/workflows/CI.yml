@@ -1,4 +1,5 @@
 name: CI Pipeline
+
 on:
   push:
     branches:
@@ -83,21 +84,24 @@ jobs:
         name: my-build-package
         path: WalmartSales_model_api
 
-    - name: Login to Docker hub
+    - name: Login to Docker Hub using nerdctl
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASS_TOKEN }}
-      run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+      run: |
+        echo $DOCKER_PASSWORD | nerdctl login -u $DOCKER_USER --password-stdin
 
-    - name: Build the Docker image for Fastapi app
+    - name: Build the Container Image with nerdctl
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
-      run: docker build . -f Dockerfile -t $DOCKER_USER/walmartsales-fastapi:latest
+      run: |
+        nerdctl build -t $DOCKER_USER/walmartsales-fastapi:latest -f Dockerfile .
 
-    - name: Push the Docker Image
+    - name: Push the Image to Docker Hub with nerdctl
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
-      run: docker push $DOCKER_USER/walmartsales-fastapi
+      run: |
+        nerdctl push $DOCKER_USER/walmartsales-fastapi:latest
 
-    - name: Logout to Docker hub
-      run: docker logout
+    - name: Logout from Docker Hub with nerdctl
+      run: nerdctl logout

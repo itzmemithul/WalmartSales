@@ -1,6 +1,5 @@
 name: CD Pipeline
 
-# Only trigger, when the build workflow succeeded i.e. CI Pipeline
 on:
   workflow_run:
     workflows: ["CI Pipeline"]
@@ -12,15 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Pull Docker Image
-        env: 
-          DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
-        run: sudo docker pull $DOCKER_USER/walmartsales-fastapi:latest
-    
-      - name: Delete Old Docker Container
-        run: sudo docker rm -f walmartsales-fastapi-container || true
-    
-      - name: Run Docker Container
-        env: 
-          DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
-        run: sudo docker run -it -d -p 8001:8001 --name walmartsales-fastapi-container $DOCKER_USER/walmartsales-fastapi:latest
+      - name: Set up SSH for local system
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Pull Container Image with nerdctl on Rancher Desktop
+        run: |
+          ssh -o StrictHostKeyChecking=no "mithul mani@10.120.184.254" 'nerdctl pull ${{ secrets.DOCKER_USER_NAME }}/walmartsales-fastapi:latest'
+
+      - name: Stop Old Container on Rancher Desktop
+        run: |
+          ssh -o StrictHostKeyChecking=no "mithul mani@10.120.184.254" 'nerdctl rm -f walmartsales-fastapi-container || true'
+
+      - name: Run New Container on Rancher Desktop
+        run: |
+          ssh -o StrictHostKeyChecking=no "mithul mani@10.120.184.254" 'nerdctl run -it -d -p 8001:8001 --name walmartsales-fastapi-container ${{ secrets.DOCKER_USER_NAME }}/walmartsales-fastapi:latest'
