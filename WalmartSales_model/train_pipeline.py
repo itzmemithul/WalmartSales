@@ -12,7 +12,7 @@ from WalmartSales_model.config.core import config
 from WalmartSales_model.pipeline import WalmartSales_pipe
 from WalmartSales_model.processing.data_manager import load_dataset, save_pipeline
 
-def run_training() -> None:
+def run_training():
     
     """
     Train the model.
