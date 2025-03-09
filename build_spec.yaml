@@ -1,0 +1,65 @@
+version: 0.1
+component: build
+timeoutInSeconds: 6000
+runAs: root
+shell: bash
+
+env:
+  variables:
+    PYTHON_VERSION: "3.10"
+  exportedVariables:
+    - DOCKER_IMAGE_NAME
+
+steps:
+  - type: Command
+    name: "Setup Docker Authentication"
+    command: |
+      set +x
+      echo "${DOCKER_PASS_TOKEN}" | docker login -u "${DOCKER_USER_NAME}" --password-stdin
+      set -x
+
+  - type: Command
+    name: "Set up Python"
+    command: |
+      apt-get update
+      apt-get install -y python3 python3-pip
+      python3 -m pip install --upgrade pip
+
+  - type: Command
+    name: "Train Model"
+    command: |
+      pip install -r requirements/requirements.txt
+      python WalmartSales_model/train_pipeline.py
+      mkdir -p ${OCI_PRIMARY_SOURCE_DIR}/trained_models
+      cp WalmartSales_model/trained_models/*.pkl ${OCI_PRIMARY_SOURCE_DIR}/trained_models/
+
+  - type: Command
+    name: "Run Tests"
+    command: |
+      pip install -r requirements/test_requirements.txt
+      pytest
+
+  - type: Command
+    name: "Build Package"
+    command: |
+      pip install --upgrade build
+      python -m build
+      mkdir -p ${OCI_PRIMARY_SOURCE_DIR}/dist
+      cp dist/*.whl ${OCI_PRIMARY_SOURCE_DIR}/dist/
+
+  - type: Command
+    name: "Build and Push Docker Image"
+    command: |
+      cp ${OCI_PRIMARY_SOURCE_DIR}/dist/*.whl WalmartSales_model_api/
+      export DOCKER_IMAGE_NAME="${DOCKER_USER_NAME}/walmartsales-fastapi:latest"
+      docker build . -f Dockerfile -t ${DOCKER_IMAGE_NAME}
+      docker push ${DOCKER_IMAGE_NAME}
+      docker logout
+
+outputArtifacts:
+  - name: trained_model
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/trained_models/*.pkl
+  - name: wheel_package
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/dist/*.whl
